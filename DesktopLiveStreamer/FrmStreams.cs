@@ -1601,5 +1601,13 @@ namespace DesktopLiveStreamer
                 }
             }
         }
+        
+        void BtnRecClick(object sender, EventArgs e)
+        {
+        	playing = true;
+
+            Thread playingThread = new Thread(new ThreadStart(playingLoop));
+            playingThread.Start();
+        }
     }
 }

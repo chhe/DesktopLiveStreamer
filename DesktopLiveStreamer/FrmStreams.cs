@@ -50,14 +50,26 @@ namespace DesktopLiveStreamer
         }
 
 
+        private void ensureSettingsDirExists(String path)
+        {
+        	if (!Directory.Exists(path))
+        	{
+        		Directory.CreateDirectory(path);
+        	}
+        }
+        
         private void FrmStreams_Load(object sender, EventArgs e)
         {
             listGames = new ListGames();
             listFavoriteStreams = new ListStreams();
             listLiveStreams = new ListStreams();
 
-            XMLPersist.StreamXMLFile = "streamlist.xml";
-            XMLPersist.GameXMLFile = "gamelist.xml";
+            String settingsBasePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\DesktopLiveStreamer\\";
+            
+            ensureSettingsDirExists(settingsBasePath);
+                        
+            XMLPersist.StreamXMLFile = settingsBasePath + "streamlist.xml";
+            XMLPersist.GameXMLFile = settingsBasePath + "gamelist.xml";
 
             try
             {
@@ -65,12 +77,8 @@ namespace DesktopLiveStreamer
             }
             catch (FileNotFoundException)
             {
-                // critical problem, the file needs to exist
-                MessageBox.Show(this, "Error: Unable to load configuration file 'streamlist.xml'. Check if it " +
-                            "exists in the directory of the application and is readable.",
-                            "Configuration file not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                this.Close();
+            	XMLPersist.saveStreamListConfig(listFavoriteStreams);
+                Console.WriteLine("An XML configuration file wasn't found");
             }
 
             try

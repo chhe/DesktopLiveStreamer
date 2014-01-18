@@ -69,8 +69,8 @@
         	this.btnAbout = new System.Windows.Forms.Button();
         	this.btnRec = new System.Windows.Forms.Button();
         	this.groupBox2 = new System.Windows.Forms.GroupBox();
-        	this.streamSafeFile = new System.Windows.Forms.TextBox();
         	this.label1 = new System.Windows.Forms.Label();
+        	this.streamSafeFile = new System.Windows.Forms.TextBox();
         	this.groupBox1.SuspendLayout();
         	this.groupLive.SuspendLayout();
         	this.groupFavorites.SuspendLayout();
@@ -88,7 +88,6 @@
         	this.btnChangeStreamer.TabIndex = 0;
         	this.btnChangeStreamer.Text = "Configure Live Streamer Executable";
         	this.btnChangeStreamer.UseVisualStyleBackColor = true;
-        	this.btnChangeStreamer.Visible = false;
         	this.btnChangeStreamer.Click += new System.EventHandler(this.btnChangeStreamer_Click);
         	// 
         	// btnPlay
@@ -490,13 +489,6 @@
         	this.groupBox2.TabStop = false;
         	this.groupBox2.Text = "Recording Options";
         	// 
-        	// streamSafeFile
-        	// 
-        	this.streamSafeFile.Location = new System.Drawing.Point(121, 19);
-        	this.streamSafeFile.Name = "streamSafeFile";
-        	this.streamSafeFile.Size = new System.Drawing.Size(448, 20);
-        	this.streamSafeFile.TabIndex = 0;
-        	// 
         	// label1
         	// 
         	this.label1.Location = new System.Drawing.Point(15, 19);
@@ -504,6 +496,13 @@
         	this.label1.Size = new System.Drawing.Size(100, 23);
         	this.label1.TabIndex = 1;
         	this.label1.Text = "Save Stream to File";
+        	// 
+        	// streamSafeFile
+        	// 
+        	this.streamSafeFile.Location = new System.Drawing.Point(121, 19);
+        	this.streamSafeFile.Name = "streamSafeFile";
+        	this.streamSafeFile.Size = new System.Drawing.Size(448, 20);
+        	this.streamSafeFile.TabIndex = 0;
         	// 
         	// FrmStreams
         	// 

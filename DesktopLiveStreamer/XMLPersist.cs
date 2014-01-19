@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace DesktopLiveStreamer
-{
-    class XMLPersist
-    {
+namespace DesktopLiveStreamer {
+    class XMLPersist {
         public static String LiveStreamerExecutable;
         public static String VLCExecutable;
         public static String PreferedQuality;
@@ -19,96 +17,68 @@ namespace DesktopLiveStreamer
         public static String StreamXMLFile;
         public static String GameXMLFile;
 
-        public static void loadStreamListConfig(ListStreams list)
-        {
+        public static void loadStreamListConfig(ListStreams list) {
             XmlTextReader xr = null;
             int attributs_lus;
             Stream tmpStream = null;
-            try
-            {
+            try {
                 xr = new XmlTextReader(StreamXMLFile);
 
-                while (xr.Read())
-                {
-                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "Stream")
-                    {
+                while (xr.Read()) {
+                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "Stream") {
                         tmpStream = new Stream();
                         attributs_lus = 0;
-                        while (xr.Read())
-                        {
+                        while (xr.Read()) {
                             // Lecture des attributs de personne
-                            if (xr.NodeType == XmlNodeType.Element && xr.Name == "Caption")
-                            {
+                            if (xr.NodeType == XmlNodeType.Element && xr.Name == "Caption") {
                                 xr.Read();
                                 tmpStream.Caption = xr.Value.Trim();
                                 attributs_lus++;
-                            }
-                            else if (xr.NodeType == XmlNodeType.Element && xr.Name == "URL")
-                            {
+                            } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "URL") {
                                 xr.Read();
                                 tmpStream.StreamUrl = xr.Value.Trim();
                                 attributs_lus++;
-                            }
-                            else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Quality")
-                            {
+                            } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Quality") {
                                 xr.Read();
                                 tmpStream.Quality = xr.Value.Trim();
                                 attributs_lus++;
                             }
 
                             // Sortie de while quand tous les attributs on été lu
-                            if (attributs_lus == 3)
-                            {
+                            if (attributs_lus == 3) {
                                 list.add(tmpStream);
                                 break;
                             }
-
                         }
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "LiveStreamerExecutable")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "LiveStreamerExecutable") {
                         xr.Read();
                         LiveStreamerExecutable = xr.Value.Trim();
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "VLCExecutable")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "VLCExecutable") {
                         xr.Read();
                         VLCExecutable = xr.Value.Trim();
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "PreferedQuality")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "PreferedQuality") {
                         xr.Read();
                         PreferedQuality = xr.Value.Trim();
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingDirectory")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingDirectory") {
                         xr.Read();
                         RecordingDirectory = xr.Value.Trim();
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingFormat")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingFormat") {
                         xr.Read();
                         RecordingFormat = xr.Value.Trim();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw ex;
-            }
-            finally
-            {
+            } finally {
                 if (xr != null)
                     xr.Close();
             }
         }
 
-        public static void saveStreamListConfig(ListStreams list)
-        {
+        public static void saveStreamListConfig(ListStreams list) {
             XmlTextWriter xw = null;
             Stream tmpStream = null;
-            try
-            {
+            try {
                 xw = new XmlTextWriter(StreamXMLFile, Encoding.UTF8);
                 xw.Formatting = Formatting.Indented;
 
@@ -129,8 +99,7 @@ namespace DesktopLiveStreamer
                 // Le parametre de la qualité préferée
                 xw.WriteElementString("PreferedQuality", PreferedQuality);
 
-                for (int i = 0; i < list.getSize(); i++)
-                {
+                for (int i = 0; i < list.getSize(); i++) {
                     tmpStream = list[i];
 
                     xw.WriteStartElement("Stream");
@@ -141,89 +110,65 @@ namespace DesktopLiveStreamer
                 }
 
                 xw.WriteEndElement();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw ex;
-            }
-            finally
-            {
+            } finally {
                 if (xw != null)
                     xw.Close();
             }
         }
 
-        public static void loadGameListConfig(ListGames list)
-        {
+        public static void loadGameListConfig(ListGames list) {
             XmlTextReader xr = null;
             int attributs_lus;
             Game tmpGame = null;
-            try
-            {
+            try {
                 xr = new XmlTextReader(GameXMLFile);
 
-                while (xr.Read())
-                {
-                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "Game")
-                    {
+                while (xr.Read()) {
+                    if (xr.NodeType == XmlNodeType.Element && xr.Name == "Game") {
                         tmpGame = new Game();
                         attributs_lus = 0;
-                        while (xr.Read())
-                        {
+                        while (xr.Read()) {
                             // Lecture des attributs d'une game
-                            if (xr.NodeType == XmlNodeType.Element && xr.Name == "Caption")
-                            {
+                            if (xr.NodeType == XmlNodeType.Element && xr.Name == "Caption") {
                                 xr.Read();
                                 tmpGame.Caption = xr.Value.Trim();
                                 attributs_lus++;
-                            }
-                            else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Twitch_ID")
-                            {
+                            } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Twitch_ID") {
                                 xr.Read();
                                 tmpGame.TwitchGameID = xr.Value.Trim();
                                 attributs_lus++;
-                            }
-                            else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Own3D_ID")
-                            {
+                            } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "Own3D_ID") {
                                 xr.Read();
                                 tmpGame.Own3DGameID = xr.Value.Trim();
                                 attributs_lus++;
                             }
 
                             // Sortie de while quand tous les attributs on été lu
-                            if (attributs_lus == 3)
-                            {
+                            if (attributs_lus == 3) {
                                 list.add(tmpGame);
                                 break;
                             }
 
                         }
-                    }
-                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "DefaultGame")
-                    {
+                    } else if (xr.NodeType == XmlNodeType.Element && xr.Name == "DefaultGame") {
                         xr.Read();
                         DefaultGame = xr.Value.Trim();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw ex;
-            }
-            finally
-            {
+            } finally {
                 if (xr != null)
                     xr.Close();
             }
         }
 
-
-        public static void saveGameListConfig(ListGames list)
-        {
+        public static void saveGameListConfig(ListGames list) {
             XmlTextWriter xw = null;
             Game tmpGame = null;
-            try
-            {
+            try {
                 xw = new XmlTextWriter(GameXMLFile, Encoding.UTF8);
                 xw.Formatting = Formatting.Indented;
 
@@ -235,8 +180,7 @@ namespace DesktopLiveStreamer
                 xw.WriteElementString("DefaultGame", DefaultGame);
 
 
-                for (int i = 0; i < list.getSize(); i++)
-                {
+                for (int i = 0; i < list.getSize(); i++) {
                     tmpGame = list[i];
 
                     xw.WriteStartElement("Game");
@@ -247,13 +191,9 @@ namespace DesktopLiveStreamer
                 }
 
                 xw.WriteEndElement();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw ex;
-            }
-            finally
-            {
+            } finally {
                 if (xw != null)
                     xw.Close();
             }

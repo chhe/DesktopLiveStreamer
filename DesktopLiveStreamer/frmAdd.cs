@@ -8,15 +8,12 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 
-namespace DesktopLiveStreamer
-{
-    public partial class FrmAdd : Form
-    {
+namespace DesktopLiveStreamer {
+    public partial class FrmAdd : Form {
         private ListStreams listStreams;
         private int modifyIndex;
 
-        public FrmAdd(ListStreams list)
-        {
+        public FrmAdd(ListStreams list) {
             InitializeComponent();
 
             btnAdd.Enabled = false;
@@ -24,14 +21,13 @@ namespace DesktopLiveStreamer
             listStreams = list;
         }
 
-        public FrmAdd(ListStreams list, int index, Boolean clone) : this(list)
-        {
+        public FrmAdd(ListStreams list, int index, Boolean clone)
+            : this(list) {
             txtCaption.Text = listStreams[index].Caption;
             txtURL.Text = listStreams[index].StreamUrl;
             txtQuality.Text = listStreams[index].Quality;
 
-            if (!clone)
-            {
+            if (!clone) {
                 modifyIndex = index;
 
                 btnAdd.Visible = false;
@@ -40,56 +36,42 @@ namespace DesktopLiveStreamer
         }
 
         public FrmAdd(ListStreams list, String caption, String url, String quality)
-            : this(list)
-        {
+            : this(list) {
             txtCaption.Text = caption;
             txtURL.Text = url;
             txtQuality.Text = quality;
         }
 
-        private void btnAdd_Click(object sender, EventArgs e)
-        {
-            try
-            {
+        private void btnAdd_Click(object sender, EventArgs e) {
+            try {
                 listStreams.add(new Stream(txtCaption.Text, txtURL.Text, txtQuality.Text));
                 listStreams.sort();
 
-                try
-                {
+                try {
                     XMLPersist.saveStreamListConfig(listStreams);
-                }
-                catch (UnauthorizedAccessException)
-                {
+                } catch (UnauthorizedAccessException) {
                     MessageBox.Show(this, "Error: Unable to save the configuration. Check if you have write " +
                                 "permissions on the directory of the application.\n" +
                                 "Desktop Live Streamer may require administrative rights on some systems.", "Write permission required", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
-
                 this.DialogResult = DialogResult.OK;
                 this.Close();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 MessageBox.Show(ex.GetType() + " " + ex.Message, "Erreur!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void btnModify_Click(object sender, EventArgs e)
-        {
-            try
-            {
+        private void btnModify_Click(object sender, EventArgs e) {
+            try {
                 listStreams[modifyIndex].Caption = txtCaption.Text;
                 listStreams[modifyIndex].StreamUrl = txtURL.Text;
                 listStreams[modifyIndex].Quality = txtQuality.Text;
                 listStreams.sort();
 
-                try
-                {
+                try {
                     XMLPersist.saveStreamListConfig(listStreams);
-                }
-                catch (UnauthorizedAccessException)
-                {
+                } catch (UnauthorizedAccessException) {
                     MessageBox.Show(this, "Error: Unable to save the configuration. Check if you have write " +
                                 "permissions on the directory of the application.\n" +
                                 "Desktop Live Streamer may require administrative rights on some systems.", "Write permission required", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -97,36 +79,29 @@ namespace DesktopLiveStreamer
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 MessageBox.Show(ex.GetType() + " " + ex.Message, "Erreur!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
+        private void btnCancel_Click(object sender, EventArgs e) {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
-        private void txtCaption_TextChanged(object sender, EventArgs e)
-        {
+        private void txtCaption_TextChanged(object sender, EventArgs e) {
             btnAdd.Enabled = true;
         }
 
-        private void txtQuality_TextChanged(object sender, EventArgs e)
-        {
+        private void txtQuality_TextChanged(object sender, EventArgs e) {
             btnAdd.Enabled = true;
         }
 
-        private void txtURL_TextChanged(object sender, EventArgs e)
-        {
+        private void txtURL_TextChanged(object sender, EventArgs e) {
             btnAdd.Enabled = true;
         }
 
-        private void FrmAdd_FormClosed(object sender, FormClosedEventArgs e)
-        {
+        private void FrmAdd_FormClosed(object sender, FormClosedEventArgs e) {
             if (this.DialogResult == DialogResult.None)
                 this.DialogResult = DialogResult.Cancel;
         }

@@ -13,6 +13,9 @@ namespace DesktopLiveStreamer
         public static String PreferedQuality;
         public static String DefaultGame;
 
+        public static String RecordingDirectory;
+        public static String RecordingFormat;
+
         public static String StreamXMLFile;
         public static String GameXMLFile;
 
@@ -77,6 +80,16 @@ namespace DesktopLiveStreamer
                         xr.Read();
                         PreferedQuality = xr.Value.Trim();
                     }
+                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingDirectory")
+                    {
+                        xr.Read();
+                        RecordingDirectory = xr.Value.Trim();
+                    }
+                    else if (xr.NodeType == XmlNodeType.Element && xr.Name == "RecordingFormat")
+                    {
+                        xr.Read();
+                        RecordingFormat = xr.Value.Trim();
+                    }
                 }
             }
             catch (Exception ex)
@@ -108,6 +121,10 @@ namespace DesktopLiveStreamer
 
                 // Le parametre de chemin de VLC
                 xw.WriteElementString("VLCExecutable", VLCExecutable);
+
+                xw.WriteElementString("RecordingDirectory", RecordingDirectory);
+
+                xw.WriteElementString("RecordingFormat", RecordingFormat);
 
                 // Le parametre de la qualité préferée
                 xw.WriteElementString("PreferedQuality", PreferedQuality);

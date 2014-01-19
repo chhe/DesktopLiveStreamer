@@ -21,6 +21,8 @@ namespace DesktopLiveStreamer
     {
         String qualities = "";
 
+        private static List<String> recordingFormats = new List<String>();
+
         private ListGames listGames;
         private ListStreams listFavoriteStreams;
         private ListStreams listLiveStreams;
@@ -44,6 +46,12 @@ namespace DesktopLiveStreamer
         Thread updateLiveStreamsThread;
         Thread updateQualitiesThread;
 
+        static FrmStreams() {
+            recordingFormats.Add("ogg");
+            recordingFormats.Add("ps");
+            recordingFormats.Add("ts");
+        }
+
         public FrmStreams()
         {
             InitializeComponent();
@@ -57,7 +65,15 @@ namespace DesktopLiveStreamer
         		Directory.CreateDirectory(path);
         	}
         }
-        
+
+        private void populateRecordingFormats()
+        {
+            foreach (String format in recordingFormats)
+            {
+                cbbRecordingFormat.Items.Add(format);
+            }
+        }
+
         private void FrmStreams_Load(object sender, EventArgs e)
         {
             listGames = new ListGames();
@@ -71,6 +87,8 @@ namespace DesktopLiveStreamer
             XMLPersist.StreamXMLFile = settingsBasePath + "streamlist.xml";
             XMLPersist.GameXMLFile = settingsBasePath + "gamelist.xml";
 
+            populateRecordingFormats();
+
             try
             {
                 XMLPersist.loadStreamListConfig(listFavoriteStreams);
@@ -83,7 +101,6 @@ namespace DesktopLiveStreamer
 
             try
             {
-
                 XMLPersist.loadGameListConfig(listGames);
             }
             catch (FileNotFoundException)
@@ -134,6 +151,10 @@ namespace DesktopLiveStreamer
                     btnChangeStreamer_Click(this, EventArgs.Empty);
             }
 
+            textRecordingDirectory.Text = XMLPersist.RecordingDirectory;
+            int selectedFormat = recordingFormats.IndexOf(XMLPersist.RecordingFormat);
+            cbbRecordingFormat.SelectedIndex = selectedFormat;
+                     
             updateComboGames();
 
             if (listGames.getSize() == 0)
@@ -162,6 +183,7 @@ namespace DesktopLiveStreamer
             playing = false;
             btnStop.Enabled = false;
             btnPlay.Enabled = false;
+            btnRec.Enabled = false;
             btnOpenBrowser.Enabled = false;
 
             radioList2.Checked = true;
@@ -313,6 +335,7 @@ namespace DesktopLiveStreamer
             
 
             btnPlay.Enabled = true;
+            btnRec.Enabled = true;
             btnStop.Enabled = false;
         }
 
@@ -326,11 +349,13 @@ namespace DesktopLiveStreamer
                 if (imgCmbStreams.Items.Count > 0)
                 {
                     btnPlay.Enabled = true;
+                    btnRec.Enabled = true;
                     btnOpenBrowser.Enabled = true;
                 }
                 else
                 {
                     btnPlay.Enabled = false;
+                    btnRec.Enabled = false;
                     btnOpenBrowser.Enabled = false;
                 }
             }
@@ -344,10 +369,12 @@ namespace DesktopLiveStreamer
                     if (updatingQualities)
                     {
                         btnPlay.Enabled = false;
+                        btnRec.Enabled = false;
                     }
                     else
                     {
                         btnPlay.Enabled = true;
+                        btnRec.Enabled = true;
                     }
 
                     btnOpenBrowser.Enabled = true;
@@ -355,6 +382,7 @@ namespace DesktopLiveStreamer
                 else
                 {
                     btnPlay.Enabled = false;
+                    btnRec.Enabled = false;
                     btnOpenBrowser.Enabled = false;
                 }
             }
@@ -1616,6 +1644,23 @@ namespace DesktopLiveStreamer
 
             Thread playingThread = new Thread(new ThreadStart(playingLoop));
             playingThread.Start();
+        }
+
+        private void btnSelectRecDirectory_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            DialogResult result = fbd.ShowDialog();
+            if (DialogResult.OK == result) {
+                textRecordingDirectory.Text = fbd.SelectedPath;
+                XMLPersist.RecordingDirectory = fbd.SelectedPath;
+                XMLPersist.saveStreamListConfig(listFavoriteStreams);
+            }
+        }
+
+        private void cbbRecordingFormat_SelectedValueChanged(object sender, EventArgs e)
+        {
+            XMLPersist.RecordingFormat = recordingFormats.ElementAt(cbbRecordingFormat.SelectedIndex);
+            XMLPersist.saveStreamListConfig(listFavoriteStreams);
         }
     }
 }

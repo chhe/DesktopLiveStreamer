@@ -16,15 +16,15 @@ using Microsoft.Win32;
 
 namespace DesktopLiveStreamer {
     public partial class FrmStreams : Form {
-        String qualities = "";
 
-        private static List<String> recordingFormats = new List<String>();
+        String qualities = "";
 
         private ListGames listGames;
         private ListStreams listFavoriteStreams;
         private ListStreams listLiveStreams;
 
         private Boolean playing;
+        private Boolean recording;
         private Boolean updatingGames;
         private Boolean updatingLiveStreams;
         private Boolean updatingQualities;
@@ -43,12 +43,6 @@ namespace DesktopLiveStreamer {
         Thread updateLiveStreamsThread;
         Thread updateQualitiesThread;
 
-        static FrmStreams() {
-            recordingFormats.Add("ogg");
-            recordingFormats.Add("ps");
-            recordingFormats.Add("ts");
-        }
-
         public FrmStreams() {
             InitializeComponent();
         }
@@ -60,8 +54,8 @@ namespace DesktopLiveStreamer {
         }
 
         private void populateRecordingFormats() {
-            foreach (String format in recordingFormats) {
-                cbbRecordingFormat.Items.Add(format);
+            foreach (VLCRecordingFormats format in VLCRecordingFormats.getEntries()) {
+                cbbRecordingFormat.Items.Add(format.MenuEntry);
             }
         }
 
@@ -116,7 +110,6 @@ namespace DesktopLiveStreamer {
                 }
             }
 
-
             // Check if LiveStreamer executable is found
             if (XMLPersist.LiveStreamerExecutable != null && !File.Exists(XMLPersist.LiveStreamerExecutable)) {
                 DialogResult r = MessageBox.Show(this,
@@ -128,7 +121,7 @@ namespace DesktopLiveStreamer {
             }
 
             textRecordingDirectory.Text = XMLPersist.RecordingDirectory;
-            int selectedFormat = recordingFormats.IndexOf(XMLPersist.RecordingFormat);
+            int selectedFormat = VLCRecordingFormats.getEntries().IndexOf(VLCRecordingFormats.getValueFromMenuEntry(XMLPersist.RecordingFormat));
             cbbRecordingFormat.SelectedIndex = selectedFormat;
 
             updateComboGames();
@@ -154,6 +147,7 @@ namespace DesktopLiveStreamer {
             updateComboStreams();
 
             playing = false;
+            recording = false;
             btnStop.Enabled = false;
             btnPlay.Enabled = false;
             btnRec.Enabled = false;
@@ -168,11 +162,6 @@ namespace DesktopLiveStreamer {
             btnAddLiveStream.Enabled = false;
 
             imgCmbStreams_SelectedIndexChanged(this, EventArgs.Empty);
-        }
-
-        public Boolean FileExists() {
-
-            return false;
         }
 
         public string ReadVLCExecutable() {
@@ -268,6 +257,7 @@ namespace DesktopLiveStreamer {
 
         private void btnStop_Click(object sender, EventArgs e) {
             playing = false;
+            recording = false;
 
             // close the vlc window
             if (VLCStreamProcess != null && !VLCStreamProcess.HasExited)
@@ -383,7 +373,6 @@ namespace DesktopLiveStreamer {
                 imgCmbGames.SelectedIndex = listGames.find(XMLPersist.DefaultGame);
             else if (imgCmbGames.Items.Count > 0)
                 imgCmbGames.SelectedIndex = 0;
-
         }
 
         public void updateComboStreams() {
@@ -750,6 +739,11 @@ namespace DesktopLiveStreamer {
                         btnPlay.Enabled = true;
                     }));
 
+                if (btnRec.InvokeRequired)
+                    btnRec.Invoke(new MethodInvoker(delegate {
+                        btnRec.Enabled = true;
+                    }));
+
                 if (btnUpdate.InvokeRequired)
                     btnUpdate.Invoke(new MethodInvoker(delegate { btnUpdate.Enabled = false; }));
 
@@ -1054,6 +1048,11 @@ namespace DesktopLiveStreamer {
                     quality = listFavoriteStreams[index].Quality;
                 }
 
+                if (btnRec.InvokeRequired)
+                    btnRec.Invoke(new MethodInvoker(delegate {
+                        btnRec.Enabled = false;
+                    }));
+
                 if (statusStrip1.InvokeRequired)
                     statusStrip1.Invoke(new MethodInvoker(delegate {
                         statusLabel.Text = "Loading stream from '" + url + "' ...";
@@ -1142,6 +1141,11 @@ namespace DesktopLiveStreamer {
             if (btnPlay.InvokeRequired)
                 btnPlay.Invoke(new MethodInvoker(delegate {
                     btnPlay.Enabled = true;
+                }));
+
+            if (btnRec.InvokeRequired)
+                btnRec.Invoke(new MethodInvoker(delegate {
+                    btnRec.Enabled = true;
                 }));
 
             if (btnStop.InvokeRequired)
@@ -1298,10 +1302,213 @@ namespace DesktopLiveStreamer {
             }
         }
 
-        void BtnRecClick(object sender, EventArgs e) {
-            playing = true;
+        /// <summary>
+        /// /////////////////////////////////// RECORDING LOOP
+        /// </summary>
 
-            Thread playingThread = new Thread(new ThreadStart(playingLoop));
+        private void recordingLoop() {
+            int index = 0;
+            String url = "";
+            String quality = "";
+            String caption = "";
+            bool live = true;
+            Boolean error = false;
+
+            if (groupLive.InvokeRequired)
+                groupLive.Invoke(new MethodInvoker(delegate { live = groupLive.Enabled; }));
+
+            if (live) {
+                if (imgCmbLiveStreams.InvokeRequired)
+                    imgCmbLiveStreams.Invoke(new MethodInvoker(delegate {
+                        if (imgCmbLiveStreams.Items.Count > 0)
+                            index = imgCmbLiveStreams.SelectedIndex;
+                        else
+                            recording = false;
+                    }));
+
+                if (cmbQualities.InvokeRequired)
+                    cmbQualities.Invoke(new MethodInvoker(delegate {
+                        quality = (String) cmbQualities.SelectedItem;
+                    }));
+
+                if (quality.Contains("(best)"))
+                    quality = quality.Replace("(best)", "").Trim();
+                else if (quality.Contains("(worst)"))
+                    quality = quality.Replace("(worst)", "").Trim();
+                else if (quality.Contains("(worst, best)"))
+                    quality = quality.Replace("(worst, best)", "").Trim();
+
+            } else {
+                if (imgCmbStreams.InvokeRequired)
+                    imgCmbStreams.Invoke(new MethodInvoker(delegate {
+                        if (imgCmbStreams.Items.Count > 0)
+                            index = imgCmbStreams.SelectedIndex;
+                        else
+                            recording = false;
+
+                    }));
+            }
+
+            while (recording) {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.FileName = XMLPersist.LiveStreamerExecutable;
+
+                if (live) {
+                    caption = listLiveStreams[index].Caption;
+                    url = listLiveStreams[index].StreamUrl;
+                } else {
+                    caption = listFavoriteStreams[index].Caption;
+                    url = listFavoriteStreams[index].StreamUrl;
+                    quality = listFavoriteStreams[index].Quality;
+                }
+
+                if (btnPlay.InvokeRequired) {
+                    btnPlay.Invoke(new MethodInvoker(delegate {
+                        btnPlay.Enabled = false;
+                    }));
+                }
+
+                if (statusStrip1.InvokeRequired)
+                    statusStrip1.Invoke(new MethodInvoker(delegate {
+                        statusLabel.Text = "Recording stream from '" + url + "' ...";
+                        statusLabel.ForeColor = Color.Brown;
+
+                        progressBar.Visible = true;
+                    }));
+
+                VLCRecordingFormats selectedFormat = null;
+                if (cbbRecordingFormat.InvokeRequired) {
+                    cbbRecordingFormat.Invoke(new MethodInvoker(delegate {
+                        selectedFormat = VLCRecordingFormats.getEntries().ElementAt(cbbRecordingFormat.SelectedIndex);
+                    }));
+                }
+
+                String recordingDirectory = textRecordingDirectory.Text;
+                String recordingFilename = convertStreamCaptionToValidFilename(caption) + "_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                // --sout file/muxer:stream.xyz
+                String reordingParameters = "--sout file/" + selectedFormat.Muxer + ":" + recordingDirectory + "\\" + recordingFilename + "." + selectedFormat.Extension;
+                startInfo.Arguments = url + " " + quality + " --player=\"" + XMLPersist.VLCExecutable + " " + reordingParameters + "\""
+                            + " --rtmpdump \"Livestreamer\\rtmpdump\\rtmpdump.exe\"";
+                liveStreamerProcess = Process.Start(startInfo);
+
+                //String streamerOutput = "";
+                //int lineCount = 0;
+
+                //liveStreamerProcess.BeginOutputReadLine();
+
+                //liveStreamerProcess.OutputDataReceived += liveStreamerProcess_OuputDataReceived;
+                //liveStreamerProcess.ErrorDataReceived += liveStreamerProcess_OuputDataReceived;
+
+                while (!liveStreamerProcess.HasExited) {
+                    if (btnRec.InvokeRequired)
+                        btnRec.Invoke(new MethodInvoker(delegate {
+                            btnRec.Enabled = false;
+                        }));
+
+                    if (btnStop.InvokeRequired)
+                        btnStop.Invoke(new MethodInvoker(delegate { btnStop.Enabled = true; }));
+
+                    //if (lineCount <= 2)
+                    //{
+                    //    //streamerOutput = liveStreamerProcess.StandardError.ReadLine();
+                    //    lineCount++;
+                    //}
+
+                    //Console.WriteLine(streamerOutput);
+                    //if (streamerOutput != null && streamerOutput.StartsWith("error"))
+                    //{
+                    //    streamerOutput = streamerOutput.Replace("error: ", "");
+                    //    if (statusStrip1.InvokeRequired)
+                    //        statusStrip1.Invoke(new MethodInvoker(delegate
+                    //        {
+                    //            progressBar.Visible = false;
+                    //            statusLabel.Text = "Error: " + streamerOutput;
+                    //            statusLabel.ForeColor = Color.Red;
+                    //        }));
+
+                    //    error = true;
+                    //}
+                    //else if (streamerOutput != null && streamerOutput.StartsWith("Invalid stream quality"))
+                    //{
+                    //    if (statusStrip1.InvokeRequired)
+                    //        statusStrip1.Invoke(new MethodInvoker(delegate
+                    //        {
+                    //            progressBar.Visible = false;
+                    //            statusLabel.Text = "Error: " + streamerOutput;
+                    //            statusLabel.ForeColor = Color.Red;
+                    //        }));
+
+                    //    error = true;
+                    //}
+
+                    if ((VLCStreamProcess = getVLCStreamProcess()) != null) {
+                        if (!updatingLiveStreams && !updatingQualities && !checkingFavoritesOnlineStatus
+                            && !updatingGames) {
+                            if (statusStrip1.InvokeRequired)
+                                statusStrip1.Invoke(new MethodInvoker(delegate {
+                                    progressBar.Visible = false;
+                                    if (caption != null)
+                                        statusLabel.Text = "Recording '" + ((caption != null) ? (caption.Substring(0, ((caption.Length > 64) ? 64 : caption.Length))
+                                            .Replace("\n", "")) : "") + "' ...";
+                                    statusLabel.ForeColor = Color.Green;
+                                }));
+                        }
+                    }
+
+                    Thread.Sleep(500);
+                }
+
+                if (VLCStreamProcess != null && !VLCStreamProcess.HasExited)
+                    VLCStreamProcess.Kill();
+                else
+                    recording = false;
+            }
+
+            if (btnRec.InvokeRequired)
+                btnRec.Invoke(new MethodInvoker(delegate {
+                    btnRec.Enabled = true;
+                }));
+
+            if (btnPlay.InvokeRequired)
+                btnPlay.Invoke(new MethodInvoker(delegate {
+                    btnPlay.Enabled = true;
+                }));
+
+            if (btnStop.InvokeRequired)
+                btnStop.Invoke(new MethodInvoker(delegate { btnStop.Enabled = false; }));
+
+            if (statusStrip1.InvokeRequired)
+                statusStrip1.Invoke(new MethodInvoker(delegate {
+                    progressBar.Visible = false;
+                }));
+
+            if (!error) {
+                if (statusStrip1.InvokeRequired)
+                    statusStrip1.Invoke(new MethodInvoker(delegate {
+                        statusLabel.Text = "Ready";
+                        statusLabel.ForeColor = Color.Black;
+                    }));
+            }
+        }
+
+        private String convertStreamCaptionToValidFilename(string caption) {
+            String cleanedCaption = caption;
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars()) {
+                cleanedCaption = cleanedCaption.Replace(c, '_');
+            }
+            cleanedCaption = cleanedCaption.Replace(" ", "_");
+            return cleanedCaption;
+        }
+
+        void BtnRecClick(object sender, EventArgs e) {
+            recording = true;
+
+            Thread playingThread = new Thread(new ThreadStart(recordingLoop));
             playingThread.Start();
         }
 
@@ -1316,7 +1523,7 @@ namespace DesktopLiveStreamer {
         }
 
         private void cbbRecordingFormat_SelectedValueChanged(object sender, EventArgs e) {
-            XMLPersist.RecordingFormat = recordingFormats.ElementAt(cbbRecordingFormat.SelectedIndex);
+            XMLPersist.RecordingFormat = VLCRecordingFormats.getEntries().ElementAt(cbbRecordingFormat.SelectedIndex).MenuEntry;
             XMLPersist.saveStreamListConfig(listFavoriteStreams);
         }
     }
